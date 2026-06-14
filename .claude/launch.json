@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "autoPort": false,
+  "configurations": [
+    {
+      "name": "aiv",
+      "runtimeExecutable": "php",
+      "runtimeArgs": ["artisan", "serve", "--port=8234"],
+      "port": 8234
+    }
+  ]
+}

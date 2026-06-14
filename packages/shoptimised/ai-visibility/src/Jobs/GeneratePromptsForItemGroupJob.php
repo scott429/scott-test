@@ -1,0 +1,94 @@
+<?php
+
+namespace Shoptimised\AiVisibility\Jobs;
+
+use Illuminate\Bus\Batchable;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
+use Shoptimised\AiVisibility\Enums\AttributeType;
+use Shoptimised\AiVisibility\Models\AiVisibilityItemGroup;
+use Shoptimised\AiVisibility\Models\AiVisibilityPrompt;
+use Shoptimised\AiVisibility\Models\Product;
+use Shoptimised\AiVisibility\Models\ProductConversationalAttribute;
+use Shoptimised\AiVisibility\Services\PromptGenerator;
+use Shoptimised\AiVisibility\Support\TenantContext;
+
+class GeneratePromptsForItemGroupJob implements ShouldQueue
+{
+    use Batchable;
+    use Dispatchable;
+    use InteractsWithQueue;
+    use Queueable;
+    use SerializesModels;
+
+    public int $tries = 3;
+
+    public function __construct(public int $itemGroupVisibilityId) {}
+
+    public function handle(PromptGenerator $generator, TenantContext $tenant): void
+    {
+        if ($this->batch()?->cancelled()) {
+            return;
+        }
+
+        $itemGroup = AiVisibilityItemGroup::find($this->itemGroupVisibilityId);
+        if (! $itemGroup) {
+            return;
+        }
+
+        $tenant->runAs($itemGroup->retailer_id, function () use ($itemGroup, $generator) {
+            $products = Product::where('feed_id', $itemGroup->feed_id)
+                ->where('item_group_id', $itemGroup->item_group_id)
+                ->get();
+
+            $productIds = $products->pluck('id');
+
+            $variantOptions = ProductConversationalAttribute::whereIn('product_id', $productIds)
+                ->where('attribute_type', AttributeType::VariantOption->value)
+                ->get()
+                ->map(fn ($a) => data_get($a->attribute_value, 'option'))
+                ->filter()
+                ->unique()
+                ->values()
+                ->all();
+
+            $prices = $products->pluck('price')->filter()->map(fn ($p) => (float) $p);
+
+            $context = [
+                'item_group_title' => $itemGroup->item_group_title,
+                'brand' => $itemGroup->brand,
+                'category' => $itemGroup->category,
+                'variant_options' => $variantOptions,
+                'price_min' => $prices->min(),
+                'price_max' => $prices->max(),
+                'currency' => '£',
+                'important_attributes' => array_filter([$itemGroup->category]),
+            ];
+
+            $options = [
+                'limit' => (int) data_get($itemGroup->batch->selected_filters, 'prompts_per_item_group',
+                    config('ai_visibility.limits.default_prompts_per_item_group')),
+                'country' => data_get($itemGroup->batch->selected_filters, 'country'),
+                'language' => data_get($itemGroup->batch->selected_filters, 'language'),
+            ];
+
+            foreach ($generator->generate($context, $options) as $spec) {
+                AiVisibilityPrompt::create([
+                    'batch_id' => $itemGroup->batch_id,
+                    'item_group_visibility_id' => $itemGroup->id,
+                    'retailer_id' => $itemGroup->retailer_id,
+                    'prompt_text' => $spec['prompt_text'],
+                    'prompt_type' => $spec['prompt_type'],
+                    'platform' => null,
+                    'country' => $spec['country'],
+                    'language' => $spec['language'],
+                    'status' => 'pending',
+                    'run_count' => 0,
+                ]);
+            }
+        });
+    }
+}

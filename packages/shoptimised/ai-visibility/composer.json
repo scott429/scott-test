@@ -1,0 +1,48 @@
+{
+    "name": "shoptimised/ai-visibility",
+    "description": "AI Item Group Visibility Tracker for the Shoptimised platform.",
+    "type": "library",
+    "license": "proprietary",
+    "require": {
+        "php": "^8.2",
+        "illuminate/contracts": "^11.0|^12.0|^13.0",
+        "illuminate/support": "^11.0|^12.0|^13.0",
+        "illuminate/database": "^11.0|^12.0|^13.0",
+        "illuminate/bus": "^11.0|^12.0|^13.0",
+        "spatie/laravel-permission": "^6.0",
+        "livewire/livewire": "^3.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^9.0|^10.0",
+        "pestphp/pest": "^3.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Shoptimised\\AiVisibility\\": "src/",
+            "Shoptimised\\AiVisibility\\Database\\Factories\\": "database/factories/",
+            "Shoptimised\\AiVisibility\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Shoptimised\\AiVisibility\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Shoptimised\\AiVisibility\\AiVisibilityServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "suggest": {
+        "filament/filament": "^4.0 \u2014 opt-in internal admin panel (Shoptimised\\AiVisibility\\Filament\\AiVisibilityPlugin)"
+    }
+}
