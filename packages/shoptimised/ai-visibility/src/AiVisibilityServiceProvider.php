@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
+use Shoptimised\AiVisibility\Console\Commands\ImportFeedCommand;
 use Shoptimised\AiVisibility\Http\Middleware\SetTenant;
 use Shoptimised\AiVisibility\Livewire\BatchProgressPage;
 use Shoptimised\AiVisibility\Livewire\BatchResultsPage;
@@ -69,6 +70,10 @@ class AiVisibilityServiceProvider extends ServiceProvider
         });
 
         if ($this->app->runningInConsole()) {
+            $this->commands([
+                ImportFeedCommand::class,
+            ]);
+
             $this->publishes([
                 __DIR__.'/../config/ai_visibility.php' => config_path('ai_visibility.php'),
             ], 'ai-visibility-config');
