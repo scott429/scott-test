@@ -64,7 +64,7 @@ final class VisibilityResultParser
 
     private function qnaGap(bool $surfaced, string $type, bool $competitorSurfaced, string $text): array
     {
-        $themeTypes = ['attribute_led', 'use_case', 'problem_led'];
+        $themeTypes = ['attribute_led', 'use_case', 'problem_led', 'qna_led'];
 
         return (! $surfaced && $competitorSurfaced && in_array($type, $themeTypes, true))
             ? [['theme' => $type, 'evidence' => mb_substr($text, 0, 160)]]

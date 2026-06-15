@@ -7,6 +7,7 @@ use Shoptimised\AiVisibility\Livewire\BatchResultsPage;
 use Shoptimised\AiVisibility\Livewire\ItemGroupDetailPage;
 use Shoptimised\AiVisibility\Livewire\LandingPage;
 use Shoptimised\AiVisibility\Livewire\NewCheckPage;
+use Shoptimised\AiVisibility\Livewire\QnaInsightsPage;
 use Shoptimised\AiVisibility\Livewire\RecommendationsPage;
 
 // Mounted by AiVisibilityServiceProvider using config('ai_visibility.routing').
@@ -18,6 +19,7 @@ Route::get('batches/{batch}/progress', BatchProgressPage::class)->name('aiv.batc
 Route::get('batches/{batch}/results', BatchResultsPage::class)->name('aiv.batches.results');
 Route::get('groups/{itemGroup}', ItemGroupDetailPage::class)->name('aiv.groups.show');
 Route::get('recommendations', RecommendationsPage::class)->name('aiv.recommendations');
+Route::get('qna-insights', QnaInsightsPage::class)->name('aiv.qna');
 
 // JSON endpoints (used by the new-check page helpers / external callers).
 Route::get('feeds/{feed}/item-groups', [BatchController::class, 'itemGroups'])->name('aiv.feeds.item-groups');

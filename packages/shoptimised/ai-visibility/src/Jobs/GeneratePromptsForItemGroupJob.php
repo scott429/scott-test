@@ -55,6 +55,17 @@ class GeneratePromptsForItemGroupJob implements ShouldQueue
                 ->values()
                 ->all();
 
+            // Live buyer Q&A from the feed → tested verbatim as qna_led prompts.
+            $questions = ProductConversationalAttribute::whereIn('product_id', $productIds)
+                ->where('attribute_type', AttributeType::QuestionAndAnswer->value)
+                ->where('live_in_feed', true)
+                ->get()
+                ->map(fn ($a) => data_get($a->attribute_value, 'question') ?? data_get($a->attribute_value, 'value'))
+                ->filter()
+                ->unique()
+                ->values()
+                ->all();
+
             $prices = $products->pluck('price')->filter()->map(fn ($p) => (float) $p);
 
             $context = [
@@ -62,6 +73,7 @@ class GeneratePromptsForItemGroupJob implements ShouldQueue
                 'brand' => $itemGroup->brand,
                 'category' => $itemGroup->category,
                 'variant_options' => $variantOptions,
+                'questions' => $questions,
                 'price_min' => $prices->min(),
                 'price_max' => $prices->max(),
                 'currency' => '£',

@@ -12,4 +12,5 @@ enum PromptType: string
     case ProblemLed = 'problem_led';
     case VariantLed = 'variant_led';
     case CommercialIntent = 'commercial_intent';
+    case QnaLed = 'qna_led';
 }

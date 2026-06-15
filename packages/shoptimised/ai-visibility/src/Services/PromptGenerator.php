@@ -38,6 +38,10 @@ class PromptGenerator
         $useCases = array_values(array_filter((array) ($context['use_cases'] ?? [])));
         $problems = array_values(array_filter((array) ($context['problems'] ?? [])));
         $variants = array_values(array_filter((array) ($context['variant_options'] ?? [])));
+        $questions = array_values(array_filter(array_map(
+            fn ($q) => trim((string) $q),
+            (array) ($context['questions'] ?? []),
+        )));
         $priceMax = $context['price_max'] ?? null;
 
         // Ordered candidate prompts. Types lacking source data are skipped rather
@@ -46,6 +50,12 @@ class PromptGenerator
 
         $candidates[] = [PromptType::GenericDiscovery, "Best {$title} to buy online in the {$region}"];
         $candidates[] = [PromptType::CommercialIntent, "Where can I buy {$title} online in the {$region}?"];
+
+        // Buyer Q&A from the product feed, tested verbatim so we can report which
+        // questions actually surface the retailer.
+        foreach ($questions as $question) {
+            $candidates[] = [PromptType::QnaLed, $question];
+        }
 
         if ($priceMax !== null) {
             $rounded = (int) ceil(((float) $priceMax) / 10) * 10;

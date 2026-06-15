@@ -40,6 +40,25 @@ it('skips variant-led prompts when there are no variant options', function () {
     expect(array_column($with, 'prompt_type'))->toContain(PromptType::VariantLed->value);
 });
 
+it('generates qna_led prompts from product questions, tested verbatim', function () {
+    $prompts = generate([
+        'item_group_title' => 'Rattan corner sofa sets',
+        'currency' => '£',
+        'questions' => ['Are rattan sofas weatherproof?', 'Do rattan sofa sets include cushions?'],
+    ]);
+
+    $qna = array_values(array_filter($prompts, fn ($p) => $p['prompt_type'] === PromptType::QnaLed->value));
+
+    expect($qna)->toHaveCount(2)
+        ->and(array_column($qna, 'prompt_text'))->toContain('Are rattan sofas weatherproof?');
+});
+
+it('skips qna prompts when the item group has no questions', function () {
+    $prompts = generate(['item_group_title' => 'Egg chairs', 'currency' => '£']);
+
+    expect(array_column($prompts, 'prompt_type'))->not->toContain(PromptType::QnaLed->value);
+});
+
 it('respects the prompt limit', function () {
     $prompts = generate([
         'item_group_title' => 'Cantilever parasols',

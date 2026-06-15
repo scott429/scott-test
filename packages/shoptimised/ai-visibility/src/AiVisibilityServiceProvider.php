@@ -16,6 +16,7 @@ use Shoptimised\AiVisibility\Livewire\BatchResultsPage;
 use Shoptimised\AiVisibility\Livewire\ItemGroupDetailPage;
 use Shoptimised\AiVisibility\Livewire\LandingPage;
 use Shoptimised\AiVisibility\Livewire\NewCheckPage;
+use Shoptimised\AiVisibility\Livewire\QnaInsightsPage;
 use Shoptimised\AiVisibility\Livewire\RecommendationsPage;
 use Shoptimised\AiVisibility\Models\AiVisibilityBatch;
 use Shoptimised\AiVisibility\Models\FeedActionRecommendation;
@@ -71,6 +72,7 @@ class AiVisibilityServiceProvider extends ServiceProvider
             Livewire::component('aiv.batch-results', BatchResultsPage::class);
             Livewire::component('aiv.item-group-detail', ItemGroupDetailPage::class);
             Livewire::component('aiv.recommendations', RecommendationsPage::class);
+            Livewire::component('aiv.qna-insights', QnaInsightsPage::class);
         }
 
         $routing = $this->app['config']->get('ai_visibility.routing');
