@@ -28,7 +28,7 @@
         <x-aiv::metric-card label="Competitors surfaced" :value="$exec['competitors']" />
         <x-aiv::metric-card label="Recommendations" :value="$exec['recommendations']" />
         @if (($exec['spend'] ?? 0) > 0)
-            <x-aiv::metric-card label="Estimated spend" :value="'$'.number_format($exec['spend'], 2)" />
+            <x-aiv::metric-card label="Estimated spend" :value="'$'.number_format($exec['spend'], $exec['spend'] < 1 ? 4 : 2)" />
         @endif
     </div>
 
