@@ -20,6 +20,13 @@
         @endif
     </div>
 
+    @if (! $b->status->isTerminal() && $b->completed_prompts === 0)
+        <div class="aiv-method" style="margin-top:1rem;">
+            Waiting for a queue worker to process this check. If the bar stays at 0%, start a worker in your terminal:
+            <span style="display:inline-block; margin-top:6px; font-family:ui-monospace,monospace; font-size:.78rem; background:var(--aiv-low-bg); color:var(--aiv-low-fg); padding:2px 8px; border-radius:6px;">php artisan queue:work --queue=ai-visibility,parsing,default</span>
+        </div>
+    @endif
+
     <div class="aiv-flex" style="margin-top:1.25rem;">
         @if ($b->status->value === 'completed')
             <a class="aiv-btn aiv-btn-primary" wire:navigate href="{{ route('aiv.batches.results', $b) }}">View results</a>
