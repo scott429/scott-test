@@ -11,4 +11,7 @@ export type NavItem = {
     href: NonNullable<InertiaLinkProps['href']>;
     icon?: LucideIcon;
     isActive?: boolean;
+    // When true, render a plain anchor (full page load) instead of an Inertia
+    // link — used for server-rendered routes outside the Inertia app.
+    external?: boolean;
 };
