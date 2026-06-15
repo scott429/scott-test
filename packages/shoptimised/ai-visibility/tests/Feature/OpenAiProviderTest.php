@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Http;
+use Shoptimised\AiVisibility\Providers\Exceptions\TransientProviderException;
 use Shoptimised\AiVisibility\Providers\OpenAiSearchProvider;
 
 it('returns a pending manual response when no api key is configured', function () {
@@ -39,9 +40,9 @@ it('maps an openai web-search response into text and citation domains', function
         ->and($response->citations[1]->domain)->toBe('johnlewis.com');
 });
 
-it('returns a failed response on an openai api error', function () {
+it('returns a failed response on a terminal openai api error', function () {
     Http::fake([
-        'api.openai.com/*' => Http::response('rate limited', 429),
+        'api.openai.com/*' => Http::response('bad request', 400),
     ]);
 
     $provider = new OpenAiSearchProvider(['name' => 'openai', 'key' => 'test-key']);
@@ -49,5 +50,15 @@ it('returns a failed response on an openai api error', function () {
     $response = $provider->runPrompt('best garden sofas');
 
     expect($response->success)->toBeFalse()
-        ->and($response->error)->toContain('429');
+        ->and($response->error)->toContain('400');
 });
+
+it('throws a transient exception on an openai 5xx so the job retries', function () {
+    Http::fake([
+        'api.openai.com/*' => Http::response('server error', 503),
+    ]);
+
+    $provider = new OpenAiSearchProvider(['name' => 'openai', 'key' => 'test-key']);
+
+    $provider->runPrompt('best garden sofas');
+})->throws(TransientProviderException::class);

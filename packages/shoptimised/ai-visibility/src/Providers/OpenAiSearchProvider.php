@@ -5,6 +5,7 @@ namespace Shoptimised\AiVisibility\Providers;
 use Illuminate\Support\Facades\Http;
 use Shoptimised\AiVisibility\DataObjects\AiProviderResponse;
 use Shoptimised\AiVisibility\DataObjects\Citation;
+use Shoptimised\AiVisibility\Providers\Exceptions\TransientProviderException;
 
 /**
  * Real provider: OpenAI web search (chat/completions with a *-search-preview
@@ -44,6 +45,10 @@ class OpenAiSearchProvider extends AbstractApiProvider
                 ]);
 
             if ($response->failed()) {
+                if ($response->status() === 429 || $response->serverError()) {
+                    throw new TransientProviderException('OpenAI HTTP '.$response->status());
+                }
+
                 return AiProviderResponse::failed(
                     $this->getName(),
                     'OpenAI HTTP '.$response->status().': '.$response->body(),
@@ -52,6 +57,8 @@ class OpenAiSearchProvider extends AbstractApiProvider
             }
 
             return $this->mapResponse($response->json(), $model);
+        } catch (TransientProviderException $e) {
+            throw $e;
         } catch (\Throwable $e) {
             return AiProviderResponse::failed($this->getName(), $e->getMessage(), $model);
         }
@@ -78,6 +85,8 @@ class OpenAiSearchProvider extends AbstractApiProvider
             $citations[] = new Citation($position, $url, $cite['title'] ?? null, $this->domainOf($url));
         }
 
+        $tokens = ((int) data_get($body, 'usage.total_tokens', 0)) ?: null;
+
         return new AiProviderResponse(
             platform: $this->getName(),
             text: $text,
@@ -86,6 +95,8 @@ class OpenAiSearchProvider extends AbstractApiProvider
             success: true,
             mode: 'api',
             modelOrSurface: $model,
+            costUsd: $this->estimateCost($tokens),
+            totalTokens: $tokens,
         );
     }
 

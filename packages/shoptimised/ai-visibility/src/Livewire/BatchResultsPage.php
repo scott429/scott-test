@@ -44,6 +44,7 @@ class BatchResultsPage extends Component
             'competitors' => AiVisibilityCompetitor::where('retailer_id', $batch->retailer_id)
                 ->whereIn('result_id', $results->pluck('id'))->distinct('competitor_domain')->count('competitor_domain'),
             'recommendations' => FeedActionRecommendation::where('batch_id', $batch->id)->count(),
+            'spend' => round((float) $results->sum('cost_usd'), 2),
         ];
 
         $platforms = $scoring->platformVisibility($runs);

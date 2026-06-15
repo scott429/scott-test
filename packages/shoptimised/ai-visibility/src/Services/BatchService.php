@@ -7,6 +7,7 @@ use Illuminate\Validation\ValidationException;
 use Shoptimised\AiVisibility\Enums\BatchStatus;
 use Shoptimised\AiVisibility\Jobs\CreateVisibilityBatchJob;
 use Shoptimised\AiVisibility\Models\AiVisibilityBatch;
+use Shoptimised\AiVisibility\Models\AuditLog;
 use Shoptimised\AiVisibility\Models\Feed;
 
 /**
@@ -57,6 +58,12 @@ class BatchService
         ]);
         $batch->retailer_id = $feed->retailer_id;
         $batch->save();
+
+        AuditLog::record('batch.created', $batch, [
+            'item_groups' => count($itemGroupIds),
+            'platforms' => $platforms,
+            'runs_per_prompt' => $runsPerPrompt,
+        ]);
 
         CreateVisibilityBatchJob::dispatch($batch->id)
             ->onQueue(config('ai_visibility.queues.default'));

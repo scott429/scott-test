@@ -6,6 +6,7 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Shoptimised\AiVisibility\Enums\RecommendationStatus;
+use Shoptimised\AiVisibility\Models\AuditLog;
 use Shoptimised\AiVisibility\Models\FeedActionRecommendation;
 
 class RecommendationsPage extends Component
@@ -23,7 +24,13 @@ class RecommendationsPage extends Component
 
         abort_unless(in_array($status, array_map(fn ($s) => $s->value, RecommendationStatus::cases()), true), 422);
 
+        $previous = $recommendation->status instanceof RecommendationStatus
+            ? $recommendation->status->value
+            : (string) $recommendation->status;
+
         $recommendation->update(['status' => $status]);
+
+        AuditLog::record('recommendation.status_changed', $recommendation, ['from' => $previous, 'to' => $status]);
     }
 
     public function render()

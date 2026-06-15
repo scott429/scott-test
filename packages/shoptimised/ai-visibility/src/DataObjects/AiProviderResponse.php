@@ -21,6 +21,7 @@ final readonly class AiProviderResponse
         public ?string $modelOrSurface = null,
         public ?string $error = null,
         public ?float $costUsd = null,
+        public ?int $totalTokens = null,
     ) {}
 
     public static function pendingManual(string $platform, ?string $model = null): self

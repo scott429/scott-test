@@ -28,6 +28,21 @@ abstract class AbstractApiProvider implements AiVisibilityProviderInterface
         return AiProviderResponse::pendingManual($this->getName(), $this->config['model'] ?? null);
     }
 
+    /**
+     * Estimate the USD cost of a run from its token usage and the provider's
+     * configured blended rate (cost_per_million_tokens). Null when unknown.
+     */
+    protected function estimateCost(?int $tokens): ?float
+    {
+        $rate = (float) ($this->config['cost_per_million_tokens'] ?? 0);
+
+        if (! $tokens || $rate <= 0) {
+            return null;
+        }
+
+        return round($tokens / 1_000_000 * $rate, 6);
+    }
+
     public function supportsCitations(): bool
     {
         return (bool) ($this->config['supports_citations'] ?? true);

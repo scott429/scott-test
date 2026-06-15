@@ -2,8 +2,10 @@
 
 namespace Shoptimised\AiVisibility;
 
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
@@ -40,6 +42,16 @@ class AiVisibilityServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
+
+        // Per-provider rate limiters, keyed by platform. RunVisibilityPromptJob
+        // applies the matching limiter so each platform throttles independently
+        // (defaults to the cache store locally; Valkey on Laravel Cloud).
+        foreach ((array) $this->app['config']->get('ai_visibility.providers', []) as $platform => $cfg) {
+            $rpm = (int) ($cfg['rate_limit_per_minute'] ?? 0);
+            if ($rpm > 0) {
+                RateLimiter::for("aiv-{$platform}", fn () => Limit::perMinute($rpm)->by("aiv-{$platform}"));
+            }
+        }
 
         $this->app['router']->aliasMiddleware('aiv.tenant', SetTenant::class);
 

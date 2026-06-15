@@ -5,6 +5,7 @@ namespace Shoptimised\AiVisibility\Providers;
 use Illuminate\Support\Facades\Http;
 use Shoptimised\AiVisibility\DataObjects\AiProviderResponse;
 use Shoptimised\AiVisibility\DataObjects\Citation;
+use Shoptimised\AiVisibility\Providers\Exceptions\TransientProviderException;
 
 /**
  * Real provider: Google Gemini with Search grounding. Sends the prompt with the
@@ -48,6 +49,10 @@ class GeminiGroundedSearchProvider extends AbstractApiProvider
                 ]);
 
             if ($response->failed()) {
+                if ($response->status() === 429 || $response->serverError()) {
+                    throw new TransientProviderException('Gemini HTTP '.$response->status());
+                }
+
                 return AiProviderResponse::failed(
                     $this->getName(),
                     'Gemini HTTP '.$response->status().': '.$response->body(),
@@ -56,6 +61,8 @@ class GeminiGroundedSearchProvider extends AbstractApiProvider
             }
 
             return $this->mapResponse($response->json(), $model);
+        } catch (TransientProviderException $e) {
+            throw $e;
         } catch (\Throwable $e) {
             return AiProviderResponse::failed($this->getName(), $e->getMessage(), $model);
         }
@@ -94,6 +101,8 @@ class GeminiGroundedSearchProvider extends AbstractApiProvider
             );
         }
 
+        $tokens = ((int) data_get($body, 'usageMetadata.totalTokenCount', 0)) ?: null;
+
         return new AiProviderResponse(
             platform: $this->getName(),
             text: $text,
@@ -102,6 +111,8 @@ class GeminiGroundedSearchProvider extends AbstractApiProvider
             success: true,
             mode: 'api',
             modelOrSurface: $model,
+            costUsd: $this->estimateCost($tokens),
+            totalTokens: $tokens,
         );
     }
 

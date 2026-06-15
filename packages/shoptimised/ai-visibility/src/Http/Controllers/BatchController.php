@@ -8,6 +8,7 @@ use Illuminate\Routing\Controller;
 use Shoptimised\AiVisibility\Http\Requests\CreateBatchRequest;
 use Shoptimised\AiVisibility\Jobs\CancelVisibilityBatchJob;
 use Shoptimised\AiVisibility\Models\AiVisibilityBatch;
+use Shoptimised\AiVisibility\Models\AuditLog;
 use Shoptimised\AiVisibility\Models\Feed;
 use Shoptimised\AiVisibility\Models\Product;
 use Shoptimised\AiVisibility\Services\BatchService;
@@ -74,6 +75,8 @@ class BatchController extends Controller
 
         CancelVisibilityBatchJob::dispatch($batch->id)
             ->onQueue(config('ai_visibility.queues.default'));
+
+        AuditLog::record('batch.cancelled', $batch);
 
         return response()->json(['batch_id' => $batch->id, 'status' => 'cancelling']);
     }

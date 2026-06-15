@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Http;
+use Shoptimised\AiVisibility\Providers\Exceptions\TransientProviderException;
 use Shoptimised\AiVisibility\Providers\GeminiGroundedSearchProvider;
 
 it('returns a pending manual response when no api key is configured', function () {
@@ -45,9 +46,9 @@ it('maps a grounded gemini response into text and citation domains', function ()
         ->and($response->citations[1]->domain)->toBe('johnlewis.com');
 });
 
-it('returns a failed response on a gemini api error', function () {
+it('returns a failed response on a terminal gemini api error', function () {
     Http::fake([
-        'generativelanguage.googleapis.com/*' => Http::response('quota exceeded', 429),
+        'generativelanguage.googleapis.com/*' => Http::response('bad request', 400),
     ]);
 
     $provider = new GeminiGroundedSearchProvider(['name' => 'gemini', 'key' => 'test-key']);
@@ -55,5 +56,15 @@ it('returns a failed response on a gemini api error', function () {
     $response = $provider->runPrompt('best garden sofas');
 
     expect($response->success)->toBeFalse()
-        ->and($response->error)->toContain('429');
+        ->and($response->error)->toContain('400');
 });
+
+it('throws a transient exception on a gemini 429 so the job retries with backoff', function () {
+    Http::fake([
+        'generativelanguage.googleapis.com/*' => Http::response('quota exceeded', 429),
+    ]);
+
+    $provider = new GeminiGroundedSearchProvider(['name' => 'gemini', 'key' => 'test-key']);
+
+    $provider->runPrompt('best garden sofas');
+})->throws(TransientProviderException::class);

@@ -7,6 +7,7 @@ use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Shoptimised\AiVisibility\Jobs\CancelVisibilityBatchJob;
 use Shoptimised\AiVisibility\Models\AiVisibilityBatch;
+use Shoptimised\AiVisibility\Models\AuditLog;
 
 class BatchProgressPage extends Component
 {
@@ -32,6 +33,7 @@ class BatchProgressPage extends Component
         $batch = $this->batch();
         $this->authorize('cancel', $batch);
         CancelVisibilityBatchJob::dispatch($batch->id)->onQueue(config('ai_visibility.queues.default'));
+        AuditLog::record('batch.cancelled', $batch);
     }
 
     public function render()

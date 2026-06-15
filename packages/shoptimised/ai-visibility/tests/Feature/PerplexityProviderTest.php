@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Http;
+use Shoptimised\AiVisibility\Providers\Exceptions\TransientProviderException;
 use Shoptimised\AiVisibility\Providers\PerplexitySearchProvider;
 
 it('returns a pending manual response when no api key is configured', function () {
@@ -64,3 +65,13 @@ it('returns a failed response on a perplexity api error', function () {
     expect($response->success)->toBeFalse()
         ->and($response->error)->toContain('401');
 });
+
+it('throws a transient exception on a perplexity 429 so the job retries', function () {
+    Http::fake([
+        'api.perplexity.ai/*' => Http::response('rate limited', 429),
+    ]);
+
+    $provider = new PerplexitySearchProvider(['name' => 'perplexity', 'key' => 'test-key']);
+
+    $provider->runPrompt('best garden sofas');
+})->throws(TransientProviderException::class);

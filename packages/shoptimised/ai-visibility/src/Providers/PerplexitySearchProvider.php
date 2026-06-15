@@ -5,6 +5,7 @@ namespace Shoptimised\AiVisibility\Providers;
 use Illuminate\Support\Facades\Http;
 use Shoptimised\AiVisibility\DataObjects\AiProviderResponse;
 use Shoptimised\AiVisibility\DataObjects\Citation;
+use Shoptimised\AiVisibility\Providers\Exceptions\TransientProviderException;
 
 /**
  * Real provider: Perplexity Sonar. Returns a grounded answer plus direct source
@@ -43,6 +44,10 @@ class PerplexitySearchProvider extends AbstractApiProvider
                 ]);
 
             if ($response->failed()) {
+                if ($response->status() === 429 || $response->serverError()) {
+                    throw new TransientProviderException('Perplexity HTTP '.$response->status());
+                }
+
                 return AiProviderResponse::failed(
                     $this->getName(),
                     'Perplexity HTTP '.$response->status().': '.$response->body(),
@@ -51,6 +56,8 @@ class PerplexitySearchProvider extends AbstractApiProvider
             }
 
             return $this->mapResponse($response->json(), $model);
+        } catch (TransientProviderException $e) {
+            throw $e;
         } catch (\Throwable $e) {
             return AiProviderResponse::failed($this->getName(), $e->getMessage(), $model);
         }
@@ -85,6 +92,8 @@ class PerplexitySearchProvider extends AbstractApiProvider
             }
         }
 
+        $tokens = ((int) data_get($body, 'usage.total_tokens', 0)) ?: null;
+
         return new AiProviderResponse(
             platform: $this->getName(),
             text: $text,
@@ -93,6 +102,8 @@ class PerplexitySearchProvider extends AbstractApiProvider
             success: true,
             mode: 'api',
             modelOrSurface: $model,
+            costUsd: $this->estimateCost($tokens),
+            totalTokens: $tokens,
         );
     }
 

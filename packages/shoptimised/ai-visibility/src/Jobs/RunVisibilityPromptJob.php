@@ -7,7 +7,9 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\Middleware\RateLimited;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\RateLimiter;
 use Shoptimised\AiVisibility\Enums\BatchStatus;
 use Shoptimised\AiVisibility\Enums\EvidenceType;
 use Shoptimised\AiVisibility\Enums\MatchType;
@@ -36,6 +38,8 @@ class RunVisibilityPromptJob implements ShouldQueue
 
     public int $timeout = 120;
 
+    public int $maxExceptions = 3;
+
     public function __construct(
         public int $promptId,
         public string $platform,
@@ -45,6 +49,29 @@ class RunVisibilityPromptJob implements ShouldQueue
     public function backoff(): array
     {
         return [10, 30, 60];
+    }
+
+    /**
+     * Throttle each platform independently using its registered rate limiter
+     * (registered in the service provider from config). Platforms without a
+     * limiter (e.g. manual) run unthrottled.
+     *
+     * @return array<int,object>
+     */
+    public function middleware(): array
+    {
+        return RateLimiter::limiter("aiv-{$this->platform}")
+            ? [new RateLimited("aiv-{$this->platform}")]
+            : [];
+    }
+
+    /**
+     * Keep retrying within this window so rate-limit releases don't exhaust a
+     * fixed try count; genuine failures are still capped by maxExceptions.
+     */
+    public function retryUntil(): \DateTimeInterface
+    {
+        return now()->addMinutes((int) config('ai_visibility.rate_limit_retry_minutes', 30));
     }
 
     public function handle(ProviderRegistry $registry, TenantContext $tenant): void
@@ -94,6 +121,8 @@ class RunVisibilityPromptJob implements ShouldQueue
                 'surfaced' => false,
                 'match_type' => MatchType::None->value,
                 'confidence_score' => 0,
+                'cost_usd' => $response->costUsd,
+                'total_tokens' => $response->totalTokens,
                 'tested_at' => now(),
             ]);
 

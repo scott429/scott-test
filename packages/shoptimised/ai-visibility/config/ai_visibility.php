@@ -36,6 +36,9 @@ return [
 
     'monthly_batch_enabled' => (bool) env('AI_VISIBILITY_MONTHLY_BATCH_ENABLED', false),
 
+    // How long a provider run job keeps retrying (covers rate-limit backoff).
+    'rate_limit_retry_minutes' => (int) env('AI_VISIBILITY_RATE_LIMIT_RETRY_MINUTES', 30),
+
     'queues' => [
         'default' => env('AI_VISIBILITY_QUEUE_DEFAULT', 'default'),
         'ai' => env('AI_VISIBILITY_QUEUE_AI', 'ai-visibility'),
@@ -57,6 +60,8 @@ return [
             'enabled' => (bool) env('OPENAI_API_KEY'),
             'key' => env('OPENAI_API_KEY'),
             'model' => env('AI_VISIBILITY_OPENAI_MODEL', 'gpt-4o-search-preview'),
+            'rate_limit_per_minute' => (int) env('AI_VISIBILITY_OPENAI_RPM', 10),
+            'cost_per_million_tokens' => (float) env('AI_VISIBILITY_OPENAI_COST_PER_M', 5.0),
             'supports_citations' => true,
             'supports_screenshots' => false,
             'mode' => 'api',
@@ -66,6 +71,8 @@ return [
             'enabled' => (bool) env('GEMINI_API_KEY'),
             'key' => env('GEMINI_API_KEY'),
             'model' => env('AI_VISIBILITY_GEMINI_MODEL', 'gemini-2.5-flash'),
+            'rate_limit_per_minute' => (int) env('AI_VISIBILITY_GEMINI_RPM', 10),
+            'cost_per_million_tokens' => (float) env('AI_VISIBILITY_GEMINI_COST_PER_M', 0.30),
             'supports_citations' => true,
             'supports_screenshots' => false,
             'mode' => 'api',
@@ -75,6 +82,8 @@ return [
             'enabled' => (bool) env('PERPLEXITY_API_KEY'),
             'key' => env('PERPLEXITY_API_KEY'),
             'model' => env('AI_VISIBILITY_PERPLEXITY_MODEL', 'sonar'),
+            'rate_limit_per_minute' => (int) env('AI_VISIBILITY_PERPLEXITY_RPM', 20),
+            'cost_per_million_tokens' => (float) env('AI_VISIBILITY_PERPLEXITY_COST_PER_M', 1.0),
             'supports_citations' => true,
             'supports_screenshots' => false,
             'mode' => 'api',
@@ -83,6 +92,8 @@ return [
             'driver' => BingSearchProvider::class,
             'enabled' => (bool) env('BING_SEARCH_API_KEY'),
             'key' => env('BING_SEARCH_API_KEY'),
+            'rate_limit_per_minute' => (int) env('AI_VISIBILITY_BING_RPM', 10),
+            'cost_per_million_tokens' => (float) env('AI_VISIBILITY_BING_COST_PER_M', 0.0),
             'supports_citations' => true,
             'supports_screenshots' => false,
             'mode' => 'api',
