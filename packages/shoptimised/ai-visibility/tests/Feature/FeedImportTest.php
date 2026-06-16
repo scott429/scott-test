@@ -23,7 +23,7 @@ function sampleGoogleFeedXml(): string
     <g:price>699.00 GBP</g:price>
     <g:link>https://gardenliving.example/rattan-grey</g:link>
     <g:color>Grey</g:color>
-    <g:question_and_answer>Are rattan sofas weatherproof? Yes, fully weatherproof.||Do they include cushions? Yes, water-resistant cushions are included.</g:question_and_answer>
+    <g:question_and_answer>Are rattan sofas weatherproof? Yes fully weatherproof., Do they include cushions? Yes water-resistant covers included.</g:question_and_answer>
   </item>
   <item>
     <g:id>SKU2</g:id>
@@ -107,7 +107,36 @@ it('imports buyer Q&A from the Question_And_Answer field as live conversational 
     $items = data_get($qna->attribute_value, 'items');
     expect($items)->toHaveCount(2)
         ->and(data_get($items, '0.question'))->toBe('Are rattan sofas weatherproof?')
-        ->and(data_get($items, '0.answer'))->toBe('Yes, fully weatherproof.');
+        ->and(data_get($items, '0.answer'))->toBe('Yes fully weatherproof.');
+});
+
+it('caps Q&A at 30 entries per product (Google maximum)', function () {
+    $retailer = Retailer::factory()->create();
+
+    $questions = implode(', ', array_map(fn ($i) => "Question number {$i}?", range(1, 40)));
+    $xml = <<<XML
+    <?xml version="1.0"?>
+    <rss xmlns:g="http://base.google.com/ns/1.0" version="2.0">
+    <channel>
+      <item>
+        <g:id>SKU-QNA</g:id>
+        <g:title>Q and A heavy product</g:title>
+        <g:question_and_answer>{$questions}</g:question_and_answer>
+      </item>
+    </channel>
+    </rss>
+    XML;
+
+    $summary = app(FeedImporter::class)->import($retailer->id, $xml, ['name' => 'QA cap feed']);
+
+    expect($summary['qna_entries'])->toBe(30);
+
+    $product = Product::where('product_id_external', 'SKU-QNA')->first();
+    $qna = ProductConversationalAttribute::where('product_id', $product->id)
+        ->where('attribute_type', AttributeType::QuestionAndAnswer->value)
+        ->first();
+
+    expect(data_get($qna->attribute_value, 'items'))->toHaveCount(30);
 });
 
 it('is idempotent when the same feed is imported twice', function () {

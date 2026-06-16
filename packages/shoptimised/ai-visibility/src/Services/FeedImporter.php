@@ -24,6 +24,9 @@ use Shoptimised\AiVisibility\Support\TenantContext;
  */
 class FeedImporter
 {
+    /** Google allows at most 30 Q&A entries per product. */
+    private const QNA_MAX_PER_PRODUCT = 30;
+
     public function __construct(protected TenantContext $tenant) {}
 
     /**
@@ -273,8 +276,9 @@ class FeedImporter
 
     /**
      * Parse the feed's Question_And_Answer field into structured Q&A entries.
-     * Multiple Q&As may be separated by newlines or "||". Each entry is split
-     * into a question (up to and including the first "?") and an answer.
+     * Entries are comma-separated and capped at 30 per product (Google's max).
+     * Each entry is split into a question (up to and including the first "?")
+     * and an answer.
      *
      * @return array<int,array{question:string,answer:string}>
      */
@@ -285,10 +289,9 @@ class FeedImporter
             return [];
         }
 
-        $entries = preg_split('/\r\n|\r|\n|\|\|/', $raw) ?: [];
         $out = [];
 
-        foreach ($entries as $entry) {
+        foreach (explode(',', $raw) as $entry) {
             $entry = trim($entry);
             if ($entry === '') {
                 continue;
@@ -304,6 +307,10 @@ class FeedImporter
 
             if ($question !== '') {
                 $out[] = ['question' => $question, 'answer' => $answer];
+            }
+
+            if (count($out) >= self::QNA_MAX_PER_PRODUCT) {
+                break;
             }
         }
 
