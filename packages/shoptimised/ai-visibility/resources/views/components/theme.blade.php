@@ -2,6 +2,7 @@
 :root {
   --aiv-primary: #1fb788;        /* Shoptimised teal/green */
   --aiv-primary-dark: #081836;   /* ink navy */
+  --aiv-blue: #005983;           /* brand blue (secondary) */
   --aiv-accent: #57c8e3;         /* sky */
   --aiv-bg: #f5f7fa;             /* canvas */
   --aiv-surface: #ffffff;

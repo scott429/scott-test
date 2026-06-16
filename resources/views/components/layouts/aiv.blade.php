@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link rel="icon" type="image/svg+xml" href="/images/shoptimised-mark.svg">
     <title>{{ $title ?? 'AI shopping readiness' }} · {{ config('app.name', 'Shoptimised') }}</title>
 
     {{-- Host app base styles (resets/tokens), same-origin via Vite. --}}
@@ -37,7 +38,7 @@
         .aiv-navlink.is-active { color: #0f7a58; background: var(--aiv-ok-bg); }
         .aiv-user { display: flex; align-items: center; gap: 10px; }
         .aiv-username { font-size: 13px; color: var(--host-muted); white-space: nowrap; }
-        .aiv-logout { background: none; border: 1px solid var(--host-border); color: var(--host-fg); font: inherit; font-weight: 500; font-size: 13px; padding: 6px 12px; border-radius: 8px; cursor: pointer; }
+        .aiv-logout { background: none; border: 1px solid var(--host-border); color: var(--host-fg); font: inherit; font-weight: 500; font-size: 13px; padding: 6px 12px; border-radius: 8px; cursor: pointer; white-space: nowrap; }
         .aiv-logout:hover { background: var(--host-surface); }
         .aiv-footer { max-width: 1040px; margin: 0 auto; padding: 1.5rem 1rem 3rem; color: var(--host-muted); font-size: 12px; }
     </style>
@@ -45,9 +46,8 @@
 <body>
     <header class="aiv-topbar">
         <div class="aiv-topbar-inner">
-            <a href="{{ url('/dashboard') }}" class="aiv-brand">
-                <span class="aiv-brand-mark" aria-hidden="true">{{ strtoupper(substr(config('app.name', 'S'), 0, 1)) }}</span>
-                {{ config('app.name', 'Shoptimised') }}
+            <a href="{{ url('/dashboard') }}" class="aiv-brand" aria-label="{{ config('app.name', 'Shoptimised') }}">
+                <img src="/images/shoptimised-logo.svg" alt="{{ config('app.name', 'Shoptimised') }}" style="height:26px; display:block;">
             </a>
             <nav class="aiv-nav">
                 <a href="{{ url('/dashboard') }}" class="aiv-navlink">Dashboard</a>
