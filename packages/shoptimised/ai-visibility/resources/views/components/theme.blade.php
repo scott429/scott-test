@@ -47,4 +47,6 @@
 .aiv-between { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .aiv-stack { display: flex; flex-direction: column; gap: 8px; }
 .aiv-mut { color: var(--aiv-muted); font-size: .8rem; }
+.aiv-ellip { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.aiv-row:hover { border-color: var(--aiv-primary); }
 </style>

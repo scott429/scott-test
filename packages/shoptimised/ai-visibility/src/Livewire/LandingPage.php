@@ -4,7 +4,12 @@ namespace Shoptimised\AiVisibility\Livewire;
 
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Livewire\Component;
+use Shoptimised\AiVisibility\Enums\AttributeType;
 use Shoptimised\AiVisibility\Models\AiVisibilityBatch;
+use Shoptimised\AiVisibility\Models\AiVisibilityItemGroup;
+use Shoptimised\AiVisibility\Models\Feed;
+use Shoptimised\AiVisibility\Models\Product;
+use Shoptimised\AiVisibility\Models\ProductConversationalAttribute;
 
 class LandingPage extends Component
 {
@@ -18,16 +23,26 @@ class LandingPage extends Component
 
     public function render()
     {
-        $batches = AiVisibilityBatch::latest()->take(10)->get();
+        $products = Product::count();
+        $qnaProducts = ProductConversationalAttribute::where('attribute_type', AttributeType::QuestionAndAnswer->value)
+            ->where('live_in_feed', true)
+            ->distinct()
+            ->count('product_id');
 
         $stats = [
-            'total_batches' => AiVisibilityBatch::count(),
+            'feeds' => Feed::count(),
+            'products' => $products,
+            'checks' => AiVisibilityBatch::count(),
             'completed' => AiVisibilityBatch::where('status', 'completed')->count(),
-            'latest_score' => $batches->firstWhere('status', 'completed')
-                ?->itemGroups()->avg('ai_visibility_score'),
+            'avg_score' => round((float) AiVisibilityItemGroup::avg('ai_visibility_score'), 1),
+            'avg_surfaced' => round((float) AiVisibilityItemGroup::avg('surfaced_rate'), 1),
+            'qna_products' => $qnaProducts,
         ];
 
-        return view('ai-visibility::livewire.landing', compact('batches', 'stats'))
+        $batches = AiVisibilityBatch::with('feed')->latest()->take(6)->get();
+        $feeds = Feed::withCount('products')->orderByDesc('last_imported_at')->orderBy('name')->take(5)->get();
+
+        return view('ai-visibility::livewire.landing', compact('stats', 'batches', 'feeds'))
             ->layout($this->layoutName());
     }
 }
