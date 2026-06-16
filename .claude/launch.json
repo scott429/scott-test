@@ -7,6 +7,12 @@
       "runtimeExecutable": "php",
       "runtimeArgs": ["artisan", "serve", "--port=8234"],
       "port": 8234
+    },
+    {
+      "name": "mockup",
+      "runtimeExecutable": "php",
+      "runtimeArgs": ["-S", "localhost:8402", "-t", "docs/mockup"],
+      "port": 8402
     }
   ]
 }
