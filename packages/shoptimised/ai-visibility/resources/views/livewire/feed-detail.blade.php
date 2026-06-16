@@ -12,11 +12,11 @@
     <h2 class="aiv-h2">Field completeness</h2>
     <div class="aiv-grid">
         <x-aiv::metric-card label="Products" :value="$c['total']" />
-        <x-aiv::metric-card label="Missing brand" :value="$c['missing_brand']" />
-        <x-aiv::metric-card label="Missing price" :value="$c['missing_price']" />
-        <x-aiv::metric-card label="Missing link" :value="$c['missing_link']" />
-        <x-aiv::metric-card label="Missing image" :value="$c['missing_image']" />
-        <x-aiv::metric-card label="Missing description" :value="$c['missing_description']" />
+        <x-aiv::metric-card label="Missing brand" :value="$c['missing_brand']" :tone="$c['missing_brand'] > 0 ? 'bad' : 'ok'" />
+        <x-aiv::metric-card label="Missing price" :value="$c['missing_price']" :tone="$c['missing_price'] > 0 ? 'bad' : 'ok'" />
+        <x-aiv::metric-card label="Missing link" :value="$c['missing_link']" :tone="$c['missing_link'] > 0 ? 'bad' : 'ok'" />
+        <x-aiv::metric-card label="Missing image" :value="$c['missing_image']" :tone="$c['missing_image'] > 0 ? 'warn' : 'ok'" />
+        <x-aiv::metric-card label="Missing description" :value="$c['missing_description']" :tone="$c['missing_description'] > 0 ? 'warn' : 'ok'" />
     </div>
 
     <h2 class="aiv-h2">Item group &amp; variant coverage</h2>
@@ -38,9 +38,9 @@
         @if ($v['evaluated'] === 0)
             <div class="aiv-mut">No multi-run results yet. Run a check with <strong>runs per prompt &gt; 1</strong> to measure run-to-run consistency.</div>
         @else
-            <div class="aiv-flex" style="gap:24px; align-items:baseline;">
-                <div><span class="aiv-score">{{ $v['consistency_pct'] }}%</span> <span class="aiv-mut">run-to-run consistency</span></div>
-                <div class="aiv-mut">{{ $v['inconsistent'] }} of {{ $v['evaluated'] }} prompt/platform pairs surfaced inconsistently</div>
+            <div class="aiv-flex" style="gap:20px; align-items:center;">
+                <x-aiv::score-gauge :value="$v['consistency_pct']" :display="$v['consistency_pct']" suffix="% consistent" />
+                <div class="aiv-mut">{{ $v['inconsistent'] }} of {{ $v['evaluated'] }} prompt/platform pairs surfaced inconsistently across runs</div>
             </div>
             @if (! empty($v['examples']))
                 <div class="aiv-stack" style="margin-top:12px;">

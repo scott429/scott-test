@@ -9,11 +9,16 @@
 
     <x-aiv::methodology-note />
 
-    <div class="aiv-grid">
-        <x-aiv::metric-card label="AI visibility score" :value="$itemGroup->ai_visibility_score ?? '—'" />
-        <x-aiv::metric-card label="Surfaced rate" :value="$itemGroup->surfaced_rate !== null ? $itemGroup->surfaced_rate.'%' : '—'" />
-        <x-aiv::metric-card label="Avg observed position" :value="$itemGroup->average_position ?? '—'" />
-        <x-aiv::metric-card label="Zero-click variants" :value="$itemGroup->zero_click_variant_count" />
+    <div class="aiv-flex" style="gap:24px; align-items:center; margin-top:.5rem;">
+        <div style="text-align:center;">
+            <x-aiv::score-gauge :value="(float) ($itemGroup->ai_visibility_score ?? 0)" :display="$itemGroup->ai_visibility_score ?? '—'" />
+            <div class="aiv-mut">AI visibility score</div>
+        </div>
+        <div class="aiv-grid" style="flex:1; min-width:240px;">
+            <x-aiv::metric-card label="Surfaced rate" :value="$itemGroup->surfaced_rate !== null ? $itemGroup->surfaced_rate.'%' : '—'" />
+            <x-aiv::metric-card label="Avg observed position" :value="$itemGroup->average_position ?? '—'" />
+            <x-aiv::metric-card label="Zero-click variants" :value="$itemGroup->zero_click_variant_count" />
+        </div>
     </div>
 
     <h2 class="aiv-h2">Prompt-level results</h2>

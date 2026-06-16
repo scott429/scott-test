@@ -10,14 +10,16 @@
     <x-aiv::methodology-note />
 
     <div class="aiv-card">
-        <div class="aiv-between" style="align-items:baseline;">
-            <span class="aiv-mut">Overall AI visibility score</span>
-            <span class="aiv-mut">weighted across {{ $itemGroups->count() }} item groups</span>
+        <div class="aiv-flex" style="gap:24px; align-items:center;">
+            <x-aiv::score-gauge :value="$exec['score']" :display="$exec['score'] ?: '—'" />
+            <div style="flex:1; min-width:160px;">
+                <div class="aiv-between" style="align-items:baseline;">
+                    <span style="font-weight:600;">Overall AI visibility score</span>
+                    <span class="aiv-mut">weighted across {{ $itemGroups->count() }} item groups</span>
+                </div>
+                <div style="margin-top:10px;"><x-aiv::score-bar :value="$exec['score']" /></div>
+            </div>
         </div>
-        <div class="aiv-flex" style="align-items:baseline; gap:6px; margin:6px 0 10px;">
-            <span class="aiv-score">{{ $exec['score'] ?: '—' }}</span><span class="aiv-mut">/ 100</span>
-        </div>
-        <x-aiv::score-bar :value="$exec['score']" />
     </div>
 
     <div class="aiv-grid" style="margin-top:12px;">
