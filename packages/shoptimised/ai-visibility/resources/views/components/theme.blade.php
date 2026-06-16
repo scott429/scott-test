@@ -49,4 +49,7 @@
 .aiv-mut { color: var(--aiv-muted); font-size: .8rem; }
 .aiv-ellip { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .aiv-row:hover { border-color: var(--aiv-primary); }
+.aiv-modal-overlay { position: fixed; inset: 0; background: rgba(8, 24, 54, .45); display: flex; align-items: flex-start; justify-content: center; padding: 5vh 1rem; z-index: 50; overflow-y: auto; }
+.aiv-modal { background: var(--aiv-surface); border-radius: var(--aiv-radius); max-width: 640px; width: 100%; padding: 1.25rem 1.5rem; box-shadow: 0 10px 40px rgba(8, 24, 54, .18); }
+.aiv-qrow { border: 1px solid var(--aiv-border); border-radius: 8px; padding: .65rem .85rem; }
 </style>

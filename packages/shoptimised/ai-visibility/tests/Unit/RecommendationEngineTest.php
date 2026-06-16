@@ -23,6 +23,11 @@ it('recommends Q&A when a theme prompt misses but rivals answer', function () {
     expect($types)->toContain(ActionType::AddQna);
 });
 
+it('recommends Q&A when a feed qna_led question misses but rivals answer', function () {
+    $types = actions([['prompt_type' => 'qna_led', 'surfaced' => false, 'competitor_surfaced' => true]]);
+    expect($types)->toContain(ActionType::AddQna);
+});
+
 it('recommends a document link when competitors cite documents', function () {
     $types = actions([['prompt_type' => 'attribute_led', 'surfaced' => true, 'competitor_surfaced' => true, 'document_gap' => true]]);
     expect($types)->toContain(ActionType::AddDocumentLink);

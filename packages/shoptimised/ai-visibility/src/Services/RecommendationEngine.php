@@ -50,11 +50,11 @@ final class RecommendationEngine
             );
         }
 
-        foreach (['attribute_led', 'use_case', 'problem_led'] as $type) {
+        foreach (['qna_led', 'attribute_led', 'use_case', 'problem_led'] as $type) {
             if ($rivalsWon($type)) {
                 $actions[] = new RecommendedAction(
                     ActionType::AddQna, $priority,
-                    "Not surfaced for {$type} prompts on {$title} where competitors answer directly. Add Q&A covering that theme.",
+                    "Buyer questions for {$title} surfaced competitors but not you. Add or improve the Q&A covering those questions.",
                 );
                 break; // one Q&A action per group is enough to action
             }
