@@ -45,6 +45,7 @@
             </a>
             <nav class="aiv-nav">
                 <a href="{{ url('/dashboard') }}" class="aiv-navlink">Dashboard</a>
+                <a href="{{ route('aiv.feeds') }}" class="aiv-navlink {{ request()->routeIs('aiv.feeds') || request()->routeIs('aiv.feeds.show') ? 'is-active' : '' }}">Feeds</a>
                 <a href="{{ route('aiv.landing') }}" class="aiv-navlink {{ request()->routeIs('aiv.landing') || request()->routeIs('aiv.batches.*') || request()->routeIs('aiv.new') || request()->routeIs('aiv.groups.*') ? 'is-active' : '' }}">AI shopping readiness</a>
                 <a href="{{ route('aiv.qna') }}" class="aiv-navlink {{ request()->routeIs('aiv.qna') ? 'is-active' : '' }}">Q&amp;A insights</a>
             </nav>
