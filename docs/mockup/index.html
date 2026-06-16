@@ -57,6 +57,13 @@
   .method{font-size:.78rem; line-height:1.5; color:var(--ink-soft); background:var(--canvas); border:1px solid var(--line); border-radius:8px; padding:.65rem .9rem; margin:1rem 0;}
   .divider{max-width:1040px; margin:1rem auto; padding:0 1rem;}
   .divider hr{border:none; border-top:1px dashed var(--line);}
+  .clickrow{cursor:pointer;}
+  .hint{font-size:.72rem; color:var(--blue); margin-top:3px;}
+  .modal-overlay{position:fixed; inset:0; background:rgba(8,24,54,.45); display:none; align-items:flex-start; justify-content:center; padding:5vh 1rem; z-index:50; overflow-y:auto;}
+  .modal-overlay.open{display:flex;}
+  .modal{background:#fff; border-radius:var(--radius); max-width:640px; width:100%; padding:1.25rem 1.5rem; box-shadow:0 10px 40px rgba(8,24,54,.18);}
+  .qrow{border:1px solid var(--line); border-radius:8px; padding:.65rem .85rem; margin-bottom:8px;}
+  .ok-note{font-size:.82rem; background:var(--teal-soft); color:var(--ok-fg); border-radius:8px; padding:.65rem .9rem; margin-top:1rem;}
 </style>
 </head>
 <body>
@@ -201,14 +208,63 @@
   </div>
 
   <h2 class="h2">Recommended feed actions</h2>
+  <div class="mut" style="margin-bottom:.5rem;">Click a recommendation to see the evidence behind it.</div>
   <div class="stack">
-    <div class="row"><div style="flex:1;"><div style="font-weight:500;">add variant options — Cantilever parasols</div><div class="mut">Variant-led prompts didn't surface; rivals did. Add the missing colour/size variants.</div></div><span class="badge high">high</span></div>
-    <div class="row"><div style="flex:1;"><div style="font-weight:500;">add Q&amp;A — Egg chairs</div><div class="mut">A buyer question surfaced competitors but not you. Publish Q&A covering it.</div></div><span class="badge high">high</span></div>
-    <div class="row"><div style="flex:1;"><div style="font-weight:500;">improve item group title — Garden storage boxes</div><div class="mut">Discovery prompts missed this family. Make the title describe the product type.</div></div><span class="badge med">medium</span></div>
+    <div class="row clickrow" onclick="openRec('variant')"><div style="flex:1;"><div style="font-weight:500;">add variant options — Cantilever parasols</div><div class="mut">Variant-led prompts didn't surface; rivals did. Add the missing colour/size variants.</div><div class="hint">View details &amp; evidence →</div></div><span class="badge high">high</span></div>
+    <div class="row clickrow" onclick="openRec('qna')"><div style="flex:1;"><div style="font-weight:500;">add Q&amp;A — Egg chairs</div><div class="mut">A buyer question surfaced competitors but not you. Publish Q&A covering it.</div><div class="hint">View details &amp; evidence →</div></div><span class="badge high">high</span></div>
+    <div class="row clickrow" onclick="openRec('title')"><div style="flex:1;"><div style="font-weight:500;">improve item group title — Garden storage boxes</div><div class="mut">Discovery prompts missed this family. Make the title describe the product type.</div><div class="hint">View details &amp; evidence →</div></div><span class="badge med">medium</span></div>
   </div>
 </div>
 
 <div class="demo">Illustrative mockup of the Shoptimised AI Item Group Visibility Tracker · branded UI with sample data. The live app adds feed import, queued multi-platform checks, audit logging and per-feed data-reliability reports.</div>
+
+<div class="modal-overlay" id="recModal" onclick="if(event.target===this)closeRec()">
+  <div class="modal" id="recModalBody"></div>
+</div>
+
+<script>
+  const RECS = {
+    variant: {
+      title: 'add variant options — Cantilever parasols', priority: 'high',
+      reason: "Variant-led prompts didn't surface your range; competitors' variants did.",
+      body: '<div class="mut" style="margin:1rem 0 .5rem;">Variant prompts where competitors surfaced but you didn\'t:</div>'
+        + '<div class="qrow"><div style="font-weight:500;">Cantilever parasols available in 3.5m</div><div class="mut">gemini, perplexity · competitors: shadesofcomfort.co.uk, argos.co.uk</div></div>'
+        + '<div class="qrow"><div style="font-weight:500;">Cantilever parasols available in grey</div><div class="mut">perplexity · competitors: johnlewis.com</div></div>'
+    },
+    qna: {
+      title: 'add Q&A — Egg chairs', priority: 'high', canPush: true,
+      reason: 'Buyer questions surfaced competitors but not you. Add Q&A covering them.',
+      body: '<div style="font-weight:600; margin:1.1rem 0 .5rem;">Questions where competitors surfaced but you didn\'t</div>'
+        + '<div class="qrow"><div style="font-weight:500;">Do egg chairs come with a stand?</div><div class="mut">tested on gemini, perplexity · competitors answering: dunelm.com, wayfair.co.uk</div></div>'
+        + '<div class="qrow"><div style="font-weight:500;">Are hanging egg chairs suitable for outdoors?</div><div class="mut">tested on gemini · competitors answering: argos.co.uk</div></div>'
+    },
+    title: {
+      title: 'improve item group title — Garden storage boxes', priority: 'medium',
+      reason: 'Broad discovery prompts missed this family.',
+      body: '<div class="mut" style="margin:1rem 0 .5rem;">Discovery prompts where you didn\'t surface:</div>'
+        + '<div class="qrow"><div style="font-weight:500;">Best garden storage boxes to buy online in the UK</div><div class="mut">gemini, perplexity · competitors: keter.com, b&q (diy.com)</div></div>'
+    }
+  };
+  function openRec(key){
+    const r = RECS[key];
+    const push = r.canPush
+      ? '<div style="display:flex; justify-content:flex-end; gap:8px; margin-top:1rem;"><button class="btn" onclick="closeRec()">Close</button><button class="btn btn-primary" id="pushBtn" onclick="pushQna()">Add 2 to feed Q&A</button></div>'
+        + '<div class="mut" style="text-align:right; margin-top:6px;">Adds these to the item group\'s products as live Q&A (answers left blank to complete).</div>'
+      : '<div style="display:flex; justify-content:flex-end; margin-top:1rem;"><button class="btn" onclick="closeRec()">Close</button></div>';
+    document.getElementById('recModalBody').innerHTML =
+      '<div class="between"><div><h2 class="h2" style="margin:0;">'+r.title+'</h2><div class="mut">'+r.reason+'</div></div>'
+      + '<button class="btn" onclick="closeRec()" aria-label="Close">✕</button></div>'
+      + r.body + '<div id="pushArea">'+push+'</div>';
+    document.getElementById('recModal').classList.add('open');
+  }
+  function pushQna(){
+    document.getElementById('pushArea').innerHTML =
+      '<div class="ok-note">✓ Added 2 question(s) to the Q&A of 2 product(s) in this item group. Fill in the answers, then re-run a check.</div>'
+      + '<div style="display:flex; justify-content:flex-end; margin-top:.75rem;"><button class="btn" onclick="closeRec()">Done</button></div>';
+  }
+  function closeRec(){ document.getElementById('recModal').classList.remove('open'); }
+  document.addEventListener('keydown', e => { if(e.key==='Escape') closeRec(); });
+</script>
 
 </body>
 </html>
