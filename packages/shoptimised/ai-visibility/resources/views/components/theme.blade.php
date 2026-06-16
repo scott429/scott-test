@@ -1,18 +1,18 @@
 <style>
 :root {
-  --aiv-primary: #1d4ed8;        /* Shoptimised blue (placeholder) */
-  --aiv-primary-dark: #0f172a;   /* navy */
-  --aiv-accent: #60a5fa;         /* lighter blue */
-  --aiv-bg: #f8fafc;             /* page background */
+  --aiv-primary: #1fb788;        /* Shoptimised teal/green */
+  --aiv-primary-dark: #081836;   /* ink navy */
+  --aiv-accent: #57c8e3;         /* sky */
+  --aiv-bg: #f5f7fa;             /* canvas */
   --aiv-surface: #ffffff;
-  --aiv-border: #e2e8f0;
-  --aiv-text: #0f172a;
-  --aiv-muted: #64748b;
-  --aiv-low-bg: #f1f5f9;   --aiv-low-fg: #475569;
-  --aiv-med-bg: #faeeda;   --aiv-med-fg: #854f0b;
-  --aiv-high-bg: #fcebeb;  --aiv-high-fg: #a32d2d;
-  --aiv-ok-bg: #e1f5ee;    --aiv-ok-fg: #0f6e56;
-  --aiv-font: 'InterVariable', system-ui, -apple-system, sans-serif;
+  --aiv-border: rgba(8, 24, 54, .08);
+  --aiv-text: #081836;           /* ink */
+  --aiv-muted: #6b7a93;          /* ink-soft */
+  --aiv-low-bg: #eef2f7;   --aiv-low-fg: #6b7a93;
+  --aiv-med-bg: #fff4e0;   --aiv-med-fg: #9a6300;   /* amber */
+  --aiv-high-bg: #fde7ea;  --aiv-high-fg: #c4324a;  /* red */
+  --aiv-ok-bg: rgba(31, 183, 136, .12);  --aiv-ok-fg: #0f7a58;  /* teal */
+  --aiv-font: 'Baloo 2', ui-rounded, 'Segoe UI', system-ui, sans-serif;
   --aiv-radius: 12px;
 }
 .aiv-wrap { max-width: 1040px; margin: 0 auto; padding: 1.5rem 1rem 4rem; color: var(--aiv-text); font-family: var(--aiv-font); }
