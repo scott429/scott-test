@@ -8,11 +8,13 @@ use Shoptimised\AiVisibility\Models\AiVisibilityBatch;
 use Shoptimised\AiVisibility\Models\AiVisibilityCompetitor;
 use Shoptimised\AiVisibility\Models\AiVisibilityResult;
 use Shoptimised\AiVisibility\Models\FeedActionRecommendation;
+use Shoptimised\AiVisibility\Services\RecommendationDetailService;
 use Shoptimised\AiVisibility\Services\ScoringService;
 
 class BatchResultsPage extends Component
 {
     use AuthorizesRequests;
+    use ManagesRecommendationDetail;
     use UsesPackageLayout;
 
     public int $batchId;
@@ -23,7 +25,7 @@ class BatchResultsPage extends Component
         $this->batchId = $batch->id;
     }
 
-    public function render(ScoringService $scoring)
+    public function render(ScoringService $scoring, RecommendationDetailService $details)
     {
         $batch = AiVisibilityBatch::with(['itemGroups', 'feed'])->findOrFail($this->batchId);
         $itemGroups = $batch->itemGroups->sortByDesc('ai_visibility_score')->values();
@@ -56,11 +58,15 @@ class BatchResultsPage extends Component
             ->groupBy('competitor_domain')->orderByDesc('mentions')->limit(6)->get();
 
         $recommendations = FeedActionRecommendation::where('batch_id', $batch->id)
+            ->with(['itemGroup', 'feed'])
             ->orderByRaw("case priority when 'high' then 1 when 'medium' then 2 else 3 end")
             ->get();
 
+        $canManage = auth()->user()?->can('approve_recommendations') ?? false;
+        $detail = $this->recommendationDetail($details);
+
         return view('ai-visibility::livewire.batch-results', compact(
-            'batch', 'itemGroups', 'exec', 'platforms', 'topCompetitors', 'recommendations'
+            'batch', 'itemGroups', 'exec', 'platforms', 'topCompetitors', 'recommendations', 'canManage', 'detail'
         ))->layout($this->layoutName());
     }
 }

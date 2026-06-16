@@ -81,9 +81,10 @@
     <div class="aiv-stack">
         @forelse ($recommendations as $rec)
             <div class="aiv-row">
-                <div style="flex:1; min-width:0;">
+                <div style="flex:1; min-width:0; cursor:pointer;" wire:click="viewDetail({{ $rec->id }})">
                     <div style="font-weight:500;">{{ str_replace('_', ' ', $rec->action_type->value) }} — {{ optional($rec->itemGroup)->item_group_title }}</div>
                     <div class="aiv-mut">{{ $rec->reason }}</div>
+                    <div style="font-size:.72rem; color:var(--aiv-blue); margin-top:3px;">View details &amp; evidence →</div>
                 </div>
                 <x-aiv::priority-badge :priority="$rec->priority" />
             </div>
@@ -91,4 +92,6 @@
             <div class="aiv-mut">No recommendations generated.</div>
         @endforelse
     </div>
+
+    @include('ai-visibility::livewire.partials.recommendation-detail-modal')
 </div>
