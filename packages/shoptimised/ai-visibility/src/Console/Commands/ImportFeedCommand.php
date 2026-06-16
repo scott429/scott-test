@@ -74,8 +74,8 @@ class ImportFeedCommand extends Command
         }
 
         $this->info(sprintf(
-            'Done. Feed #%d — %d products across %d item groups (%d variant options).',
-            $summary['feed_id'], $summary['products'], $summary['item_groups'], $summary['variant_options'],
+            'Done. Feed #%d — %d products across %d item groups (%d variant options, %d Q&A entries).',
+            $summary['feed_id'], $summary['products'], $summary['item_groups'], $summary['variant_options'], $summary['qna_entries'],
         ));
         $this->line('Start a check at the "New visibility check" page, then run: php artisan queue:work --queue=ai-visibility,parsing,default');
 

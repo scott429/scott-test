@@ -56,11 +56,21 @@ class GeneratePromptsForItemGroupJob implements ShouldQueue
                 ->all();
 
             // Live buyer Q&A from the feed → tested verbatim as qna_led prompts.
+            // Supports the importer's {items:[{question,answer}]} shape and the
+            // older single {question|value} shape.
             $questions = ProductConversationalAttribute::whereIn('product_id', $productIds)
                 ->where('attribute_type', AttributeType::QuestionAndAnswer->value)
                 ->where('live_in_feed', true)
                 ->get()
-                ->map(fn ($a) => data_get($a->attribute_value, 'question') ?? data_get($a->attribute_value, 'value'))
+                ->flatMap(function ($a) {
+                    $items = data_get($a->attribute_value, 'items');
+
+                    if (is_array($items) && $items !== []) {
+                        return array_map(fn ($i) => data_get($i, 'question'), $items);
+                    }
+
+                    return [data_get($a->attribute_value, 'question') ?? data_get($a->attribute_value, 'value')];
+                })
                 ->filter()
                 ->unique()
                 ->values()

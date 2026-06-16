@@ -20,7 +20,7 @@ use Shoptimised\AiVisibility\Support\TenantContext;
  * Re-running against the same feed is idempotent: products are matched on
  * (feed_id, product_id_external) and updated in place.
  *
- * @phpstan-type ImportSummary array{feed_id:int,products:int,item_groups:int,variant_options:int}
+ * @phpstan-type ImportSummary array{feed_id:int,products:int,item_groups:int,variant_options:int,qna_entries:int}
  */
 class FeedImporter
 {
@@ -67,6 +67,7 @@ class FeedImporter
 
             $groupIds = [];
             $variantCount = 0;
+            $qnaCount = 0;
 
             foreach ($items as $item) {
                 $groupId = $item['item_group_id'] !== '' ? $item['item_group_id'] : $item['id'];
@@ -110,6 +111,17 @@ class FeedImporter
                     );
                     $variantCount++;
                 }
+
+                // Buyer Q&A from the feed's Question_And_Answer field → tested as
+                // qna_led prompts and reported on the Q&A insights page.
+                $qna = $this->parseQna((string) $item['question_and_answer']);
+                if ($qna !== []) {
+                    ProductConversationalAttribute::updateOrCreate(
+                        ['product_id' => $product->id, 'attribute_type' => AttributeType::QuestionAndAnswer->value],
+                        ['retailer_id' => $retailerId, 'attribute_value' => ['items' => $qna], 'source' => 'feed', 'live_in_feed' => true],
+                    );
+                    $qnaCount += count($qna);
+                }
             }
 
             return [
@@ -117,12 +129,13 @@ class FeedImporter
                 'products' => count($items),
                 'item_groups' => count($groupIds),
                 'variant_options' => $variantCount,
+                'qna_entries' => $qnaCount,
             ];
         });
     }
 
     /**
-     * @return array<int,array{id:string,item_group_id:string,title:string,description:string,brand:string,product_type:string,google_product_category:string,link:string,image_link:string,price:?float,availability:string,gtin:string,mpn:string,color:string,size:string,pattern:string,material:string,custom_labels:array<int,string>}>
+     * @return array<int,array{id:string,item_group_id:string,title:string,description:string,brand:string,product_type:string,google_product_category:string,link:string,image_link:string,price:?float,availability:string,gtin:string,mpn:string,color:string,size:string,pattern:string,material:string,question_and_answer:string,custom_labels:array<int,string>}>
      */
     protected function parse(string $content, string $format): array
     {
@@ -189,6 +202,7 @@ class FeedImporter
                 'size' => $get('size'),
                 'pattern' => $get('pattern'),
                 'material' => $get('material'),
+                'question_and_answer' => $get('question_and_answer'),
                 'custom_labels' => $customLabels,
             ];
         }
@@ -249,11 +263,51 @@ class FeedImporter
                 'size' => $row['size'] ?? '',
                 'pattern' => $row['pattern'] ?? '',
                 'material' => $row['material'] ?? '',
+                'question_and_answer' => $row['question_and_answer'] ?? '',
                 'custom_labels' => $customLabels,
             ];
         }
 
         return $items;
+    }
+
+    /**
+     * Parse the feed's Question_And_Answer field into structured Q&A entries.
+     * Multiple Q&As may be separated by newlines or "||". Each entry is split
+     * into a question (up to and including the first "?") and an answer.
+     *
+     * @return array<int,array{question:string,answer:string}>
+     */
+    protected function parseQna(string $raw): array
+    {
+        $raw = trim($raw);
+        if ($raw === '') {
+            return [];
+        }
+
+        $entries = preg_split('/\r\n|\r|\n|\|\|/', $raw) ?: [];
+        $out = [];
+
+        foreach ($entries as $entry) {
+            $entry = trim($entry);
+            if ($entry === '') {
+                continue;
+            }
+
+            $question = $entry;
+            $answer = '';
+
+            if (($pos = mb_strpos($entry, '?')) !== false) {
+                $question = trim(mb_substr($entry, 0, $pos + 1));
+                $answer = trim(mb_substr($entry, $pos + 1), " \t-–—:|");
+            }
+
+            if ($question !== '') {
+                $out[] = ['question' => $question, 'answer' => $answer];
+            }
+        }
+
+        return $out;
     }
 
     /** Pull a numeric price out of e.g. "699.00 GBP". */

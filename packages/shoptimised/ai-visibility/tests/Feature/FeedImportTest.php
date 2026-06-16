@@ -23,6 +23,7 @@ function sampleGoogleFeedXml(): string
     <g:price>699.00 GBP</g:price>
     <g:link>https://gardenliving.example/rattan-grey</g:link>
     <g:color>Grey</g:color>
+    <g:question_and_answer>Are rattan sofas weatherproof? Yes, fully weatherproof.||Do they include cushions? Yes, water-resistant cushions are included.</g:question_and_answer>
   </item>
   <item>
     <g:id>SKU2</g:id>
@@ -86,6 +87,27 @@ it('imports a google shopping xml feed into feeds, products and attributes', fun
         ->first();
     expect(data_get($variant->attribute_value, 'option'))->toBe('Grey')
         ->and($variant->live_in_feed)->toBeTrue();
+});
+
+it('imports buyer Q&A from the Question_And_Answer field as live conversational attributes', function () {
+    $retailer = Retailer::factory()->create();
+
+    $summary = app(FeedImporter::class)->import($retailer->id, sampleGoogleFeedXml(), ['name' => 'Outdoor feed']);
+
+    expect($summary['qna_entries'])->toBe(2);
+
+    $grey = Product::where('product_id_external', 'SKU1')->first();
+    $qna = ProductConversationalAttribute::where('product_id', $grey->id)
+        ->where('attribute_type', AttributeType::QuestionAndAnswer->value)
+        ->first();
+
+    expect($qna)->not->toBeNull()
+        ->and($qna->live_in_feed)->toBeTrue();
+
+    $items = data_get($qna->attribute_value, 'items');
+    expect($items)->toHaveCount(2)
+        ->and(data_get($items, '0.question'))->toBe('Are rattan sofas weatherproof?')
+        ->and(data_get($items, '0.answer'))->toBe('Yes, fully weatherproof.');
 });
 
 it('is idempotent when the same feed is imported twice', function () {
