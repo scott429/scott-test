@@ -37,6 +37,7 @@
 .aiv-badge.is-medium { background: var(--aiv-med-bg); color: var(--aiv-med-fg); }
 .aiv-badge.is-high { background: var(--aiv-high-bg); color: var(--aiv-high-fg); }
 .aiv-badge.is-ok { background: var(--aiv-ok-bg); color: var(--aiv-ok-fg); }
+.aiv-badge.is-info { background: rgba(0, 89, 131, .1); color: var(--aiv-blue); }
 .aiv-btn { display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: .85rem; padding: .5rem .9rem; border: 1px solid var(--aiv-border); background: var(--aiv-surface); color: var(--aiv-text); border-radius: 8px; cursor: pointer; text-decoration: none; }
 .aiv-btn:hover { background: var(--aiv-bg); }
 .aiv-btn-primary { background: var(--aiv-primary); color: #fff; border-color: var(--aiv-primary); }

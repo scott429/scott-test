@@ -39,10 +39,10 @@ class QnaInsightsPage extends Component
             ->whereIn('p.prompt_type', self::QUESTION_TYPES)
             // Alias the sum as surfaced_count (not "surfaced") to avoid colliding
             // with the model's boolean cast on the surfaced column.
-            ->selectRaw('p.prompt_text, p.prompt_type, count(*) as runs, '
+            ->selectRaw('p.prompt_text, p.prompt_type, p.source, count(*) as runs, '
                 .'sum(ai_visibility_results.surfaced) as surfaced_count, '
                 .'round(avg(ai_visibility_results.surfaced) * 100) as rate')
-            ->groupBy('p.prompt_text', 'p.prompt_type')
+            ->groupBy('p.prompt_text', 'p.prompt_type', 'p.source')
             ->orderByDesc($orderColumn)
             ->orderByDesc('runs')
             ->limit(50)

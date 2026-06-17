@@ -23,7 +23,7 @@ class RecommendationDetailService
      * Buyer questions where a competitor surfaced for this recommendation's item
      * group but the retailer did not — the gap behind an add_qna/improve_qna rec.
      *
-     * @return Collection<int,array{question:string,platforms:array<int,string>,competitors:array<int,string>}>
+     * @return Collection<int,array{question:string,source:?string,platforms:array<int,string>,competitors:array<int,string>}>
      */
     public function qnaGapQuestions(FeedActionRecommendation $recommendation): Collection
     {
@@ -44,6 +44,7 @@ class RecommendationDetailService
             ->filter(fn ($rows, $question) => $question !== '')
             ->map(fn ($rows, $question) => [
                 'question' => $question,
+                'source' => optional($rows->first()->prompt)->source,
                 'platforms' => $rows->pluck('platform')->unique()->values()->all(),
                 'competitors' => $rows->flatMap(fn ($r) => $r->competitors->pluck('competitor_domain'))
                     ->filter()->unique()->take(5)->values()->all(),

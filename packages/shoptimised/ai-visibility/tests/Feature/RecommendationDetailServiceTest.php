@@ -67,6 +67,15 @@ it('finds the buyer questions where competitors surfaced but the retailer did no
         ->and($questions[0]['competitors'])->toBe(['dunelm.com']);
 });
 
+it('carries the prompt source through to each gap question', function () {
+    $rec = qnaRecommendationFixture();
+    AiVisibilityPrompt::query()->update(['source' => 'discovered_faq']);
+
+    $questions = app(RecommendationDetailService::class)->qnaGapQuestions($rec);
+
+    expect($questions[0]['source'])->toBe('discovered_faq');
+});
+
 it('pushes the gap questions into the item group products as live Q&A', function () {
     $rec = qnaRecommendationFixture();
 

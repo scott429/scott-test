@@ -17,9 +17,17 @@
 
             @if ($detail['is_qna'])
                 <h3 style="font-size:.95rem; font-weight:600; margin:1.1rem 0 .5rem;">Questions where competitors surfaced but you didn't</h3>
+                @if ($detail['questions']->contains(fn ($q) => ($q['source'] ?? null) === 'discovered_faq'))
+                    <div class="aiv-mut" style="margin:-.25rem 0 .6rem;">
+                        Questions tagged <x-aiv::source-badge source="discovered_faq" /> aren't in your feed yet — they were discovered for this product (from its GTIN and item group title) and tested for you.
+                    </div>
+                @endif
                 @forelse ($detail['questions'] as $q)
                     <div class="aiv-qrow" style="margin-bottom:8px;">
-                        <div style="font-weight:500;">{{ $q['question'] }}</div>
+                        <div class="aiv-flex" style="gap:8px; align-items:center;">
+                            <span style="font-weight:500;">{{ $q['question'] }}</span>
+                            <x-aiv::source-badge :source="$q['source'] ?? null" />
+                        </div>
                         <div class="aiv-mut">
                             tested on {{ implode(', ', $q['platforms']) }}
                             @if (! empty($q['competitors'])) · competitors answering: {{ implode(', ', $q['competitors']) }} @endif

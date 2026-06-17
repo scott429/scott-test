@@ -30,7 +30,12 @@
             <tbody>
             @forelse ($questions as $q)
                 <tr>
-                    <td style="min-width:0;">{{ $q->prompt_text }}</td>
+                    <td style="min-width:0;">
+                        <div class="aiv-flex" style="gap:8px; align-items:center;">
+                            <span>{{ $q->prompt_text }}</span>
+                            <x-aiv::source-badge :source="$q->source" />
+                        </div>
+                    </td>
                     <td class="aiv-mut">{{ str_replace('_', ' ', $q->prompt_type) }}</td>
                     <td>{{ $q->runs }}</td>
                     <td>{{ $q->surfaced_count }}</td>
@@ -51,13 +56,22 @@
         </table>
     </div>
 
+    @if ($questions->contains(fn ($q) => $q->source === 'discovered_faq'))
+        <div class="aiv-mut" style="margin-top:.5rem; font-size:.8rem;">
+            <x-aiv::source-badge source="discovered_faq" /> marks FAQs not in your feed — discovered from the product's GTIN and item group title and tested for you. Add them to your feed Q&A from the recommendations to improve coverage.
+        </div>
+    @endif
+
     @if ($topMissed->isNotEmpty())
         <h2 class="aiv-h2">Biggest Q&amp;A gaps</h2>
         <div class="aiv-stack">
             @foreach ($topMissed as $q)
                 <div class="aiv-row">
                     <div style="flex:1; min-width:0;">
-                        <div style="font-weight:500;">{{ $q->prompt_text }}</div>
+                        <div class="aiv-flex" style="gap:8px; align-items:center;">
+                            <span style="font-weight:500;">{{ $q->prompt_text }}</span>
+                            <x-aiv::source-badge :source="$q->source" />
+                        </div>
                         <div class="aiv-mut">{{ str_replace('_', ' ', $q->prompt_type) }} · surfaced {{ (int) $q->rate }}% of {{ $q->runs }} tests</div>
                     </div>
                     <span class="aiv-badge is-high">{{ (int) $q->rate }}%</span>
