@@ -34,6 +34,16 @@ return [
         'default_prompts_per_item_group' => 10,
     ],
 
+    // When an item group has no Q&A in the feed, discover the FAQs buyers most
+    // commonly ask (using the GTIN + item group title) via a search provider and
+    // test them as qna_led prompts. Best-effort: failures fall back silently to
+    // no Q&A prompts. 'platform' null => the first enabled non-manual provider.
+    'faq_discovery' => [
+        'enabled' => (bool) env('AI_VISIBILITY_FAQ_DISCOVERY', true),
+        'platform' => env('AI_VISIBILITY_FAQ_DISCOVERY_PLATFORM'),
+        'max_questions' => (int) env('AI_VISIBILITY_FAQ_DISCOVERY_MAX', 6),
+    ],
+
     'monthly_batch_enabled' => (bool) env('AI_VISIBILITY_MONTHLY_BATCH_ENABLED', false),
 
     // How long a provider run job keeps retrying (covers rate-limit backoff).

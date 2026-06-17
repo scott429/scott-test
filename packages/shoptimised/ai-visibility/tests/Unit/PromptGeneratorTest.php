@@ -53,6 +53,27 @@ it('generates qna_led prompts from product questions, tested verbatim', function
         ->and(array_column($qna, 'prompt_text'))->toContain('Are rattan sofas weatherproof?');
 });
 
+it('tags qna_led prompts with their source and leaves other prompts unsourced', function () {
+    $feed = generate([
+        'item_group_title' => 'Egg chairs',
+        'currency' => '£',
+        'questions' => ['Do egg chairs come with a stand?'],
+    ]);
+    $qna = collect($feed)->firstWhere('prompt_type', PromptType::QnaLed->value);
+    $generic = collect($feed)->firstWhere('prompt_type', PromptType::GenericDiscovery->value);
+    expect($qna['source'])->toBe('feed_qna')
+        ->and($generic['source'])->toBeNull();
+
+    $discovered = generate([
+        'item_group_title' => 'Egg chairs',
+        'currency' => '£',
+        'questions' => ['Do egg chairs come with a stand?'],
+        'questions_source' => 'discovered_faq',
+    ]);
+    $qnaDiscovered = collect($discovered)->firstWhere('prompt_type', PromptType::QnaLed->value);
+    expect($qnaDiscovered['source'])->toBe('discovered_faq');
+});
+
 it('skips qna prompts when the item group has no questions', function () {
     $prompts = generate(['item_group_title' => 'Egg chairs', 'currency' => '£']);
 

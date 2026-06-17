@@ -14,9 +14,10 @@ use Shoptimised\AiVisibility\Enums\PromptType;
  * Context keys:
  *   item_group_title (required), brand, category, product_type,
  *   variant_options[], price_min, price_max, currency,
- *   important_attributes[], use_cases[], problems[]
+ *   important_attributes[], use_cases[], problems[],
+ *   questions[], questions_source ('feed_qna'|'discovered_faq')
  *
- * @phpstan-type PromptSpec array{prompt_text:string,prompt_type:string,country:string,language:string}
+ * @phpstan-type PromptSpec array{prompt_text:string,prompt_type:string,source:?string,country:string,language:string}
  */
 class PromptGenerator
 {
@@ -42,6 +43,9 @@ class PromptGenerator
             fn ($q) => trim((string) $q),
             (array) ($context['questions'] ?? []),
         )));
+        $questionsSource = $questions === []
+            ? null
+            : (string) ($context['questions_source'] ?? 'feed_qna');
         $priceMax = $context['price_max'] ?? null;
 
         // Ordered candidate prompts. Types lacking source data are skipped rather
@@ -94,6 +98,7 @@ class PromptGenerator
             $prompts[] = [
                 'prompt_text' => $text,
                 'prompt_type' => $type->value,
+                'source' => $type === PromptType::QnaLed ? $questionsSource : null,
                 'country' => $country,
                 'language' => $language,
             ];

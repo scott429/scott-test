@@ -8,11 +8,13 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Collection;
 use Shoptimised\AiVisibility\Enums\AttributeType;
 use Shoptimised\AiVisibility\Models\AiVisibilityItemGroup;
 use Shoptimised\AiVisibility\Models\AiVisibilityPrompt;
 use Shoptimised\AiVisibility\Models\Product;
 use Shoptimised\AiVisibility\Models\ProductConversationalAttribute;
+use Shoptimised\AiVisibility\Services\FaqDiscoveryService;
 use Shoptimised\AiVisibility\Services\PromptGenerator;
 use Shoptimised\AiVisibility\Support\TenantContext;
 
@@ -28,7 +30,7 @@ class GeneratePromptsForItemGroupJob implements ShouldQueue
 
     public function __construct(public int $itemGroupVisibilityId) {}
 
-    public function handle(PromptGenerator $generator, TenantContext $tenant): void
+    public function handle(PromptGenerator $generator, TenantContext $tenant, FaqDiscoveryService $faqDiscovery): void
     {
         if ($this->batch()?->cancelled()) {
             return;
@@ -39,7 +41,7 @@ class GeneratePromptsForItemGroupJob implements ShouldQueue
             return;
         }
 
-        $tenant->runAs($itemGroup->retailer_id, function () use ($itemGroup, $generator) {
+        $tenant->runAs($itemGroup->retailer_id, function () use ($itemGroup, $generator, $faqDiscovery) {
             $products = Product::where('feed_id', $itemGroup->feed_id)
                 ->where('item_group_id', $itemGroup->item_group_id)
                 ->get();
@@ -76,6 +78,18 @@ class GeneratePromptsForItemGroupJob implements ShouldQueue
                 ->values()
                 ->all();
 
+            // No buyer Q&A in the feed for this item group: discover the FAQs
+            // shoppers most commonly ask (anchored on the GTIN + title) so we can
+            // still test Q&A visibility — and later recommend adding the gaps.
+            $questionsSource = 'feed_qna';
+            if ($questions === []) {
+                $discovered = $this->discoverFaqs($itemGroup, $products, $faqDiscovery);
+                if ($discovered !== []) {
+                    $questions = $discovered;
+                    $questionsSource = 'discovered_faq';
+                }
+            }
+
             $prices = $products->pluck('price')->filter()->map(fn ($p) => (float) $p);
 
             $context = [
@@ -84,6 +98,7 @@ class GeneratePromptsForItemGroupJob implements ShouldQueue
                 'category' => $itemGroup->category,
                 'variant_options' => $variantOptions,
                 'questions' => $questions,
+                'questions_source' => $questionsSource,
                 'price_min' => $prices->min(),
                 'price_max' => $prices->max(),
                 'currency' => '£',
@@ -104,6 +119,7 @@ class GeneratePromptsForItemGroupJob implements ShouldQueue
                     'retailer_id' => $itemGroup->retailer_id,
                     'prompt_text' => $spec['prompt_text'],
                     'prompt_type' => $spec['prompt_type'],
+                    'source' => $spec['source'] ?? null,
                     'platform' => null,
                     'country' => $spec['country'],
                     'language' => $spec['language'],
@@ -112,5 +128,30 @@ class GeneratePromptsForItemGroupJob implements ShouldQueue
                 ]);
             }
         });
+    }
+
+    /**
+     * Best-effort FAQ discovery for a feed with no Q&A. Anchors on a representative
+     * GTIN from the item group's products. Any failure yields no questions rather
+     * than failing prompt generation.
+     *
+     * @param  Collection<int,Product>  $products
+     * @return string[]
+     */
+    protected function discoverFaqs(AiVisibilityItemGroup $itemGroup, $products, FaqDiscoveryService $faqDiscovery): array
+    {
+        try {
+            return $faqDiscovery->discover([
+                'item_group_title' => $itemGroup->item_group_title,
+                'gtin' => $products->pluck('gtin')->filter()->first(),
+                'brand' => $itemGroup->brand,
+                'category' => $itemGroup->category,
+                'country' => data_get($itemGroup->batch->selected_filters, 'country'),
+            ]);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return [];
+        }
     }
 }
