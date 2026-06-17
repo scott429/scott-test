@@ -46,6 +46,7 @@
   .badge.ok{background:var(--teal-soft); color:var(--ok-fg);}
   .badge.med{background:var(--med-bg); color:var(--med-fg);}
   .badge.high{background:var(--high-bg); color:var(--high-fg);}
+  .badge.info{background:rgba(0,89,131,.1); color:var(--blue);}
   table{width:100%; border-collapse:collapse; font-size:.85rem;}
   th{text-align:left; font-weight:500; color:var(--ink-soft); background:var(--canvas); padding:.55rem .75rem;}
   td{padding:.6rem .75rem; border-top:1px solid var(--line);}
@@ -202,10 +203,11 @@
       <tbody>
         <tr><td>Are rattan corner sofas weatherproof?</td><td class="mut">qna led</td><td>9</td><td><div style="display:flex; align-items:center; gap:8px;"><span style="width:34px;">78%</span><span class="bar" style="flex:1;"><span style="width:78%;"></span></span></div></td></tr>
         <tr><td>Which fire pit table is best for small patios?</td><td class="mut">use case</td><td>9</td><td><div style="display:flex; align-items:center; gap:8px;"><span style="width:34px;">56%</span><span class="bar" style="flex:1;"><span style="width:56%;"></span></span></div></td></tr>
-        <tr><td>Do egg chairs come with a stand?</td><td class="mut">qna led</td><td>9</td><td><div style="display:flex; align-items:center; gap:8px;"><span style="width:34px;">33%</span><span class="bar" style="flex:1;"><span style="width:33%;"></span></span></div></td></tr>
+        <tr><td><div style="display:flex; gap:8px; align-items:center;"><span>Do egg chairs come with a stand?</span><span class="badge info">AI-discovered</span></div></td><td class="mut">qna led</td><td>9</td><td><div style="display:flex; align-items:center; gap:8px;"><span style="width:34px;">33%</span><span class="bar" style="flex:1;"><span style="width:33%;"></span></span></div></td></tr>
       </tbody>
     </table>
   </div>
+  <div class="mut" style="margin-top:.5rem; font-size:.8rem;"><span class="badge info">AI-discovered</span> marks FAQs not in your feed — discovered from the product's GTIN and item group title and tested for you. Add them to your feed Q&amp;A from the recommendations to improve coverage.</div>
 
   <h2 class="h2">Recommended feed actions</h2>
   <div class="mut" style="margin-bottom:.5rem;">Click a recommendation to see the evidence behind it.</div>
@@ -235,8 +237,9 @@
       title: 'add Q&A — Egg chairs', priority: 'high', canPush: true,
       reason: 'Buyer questions surfaced competitors but not you. Add Q&A covering them.',
       body: '<div style="font-weight:600; margin:1.1rem 0 .5rem;">Questions where competitors surfaced but you didn\'t</div>'
-        + '<div class="qrow"><div style="font-weight:500;">Do egg chairs come with a stand?</div><div class="mut">tested on gemini, perplexity · competitors answering: dunelm.com, wayfair.co.uk</div></div>'
-        + '<div class="qrow"><div style="font-weight:500;">Are hanging egg chairs suitable for outdoors?</div><div class="mut">tested on gemini · competitors answering: argos.co.uk</div></div>'
+        + '<div class="mut" style="margin:-.25rem 0 .6rem;">Questions tagged <span class="badge info">AI-discovered</span> aren\'t in your feed yet — they were discovered for this product (from its GTIN and item group title) and tested for you.</div>'
+        + '<div class="qrow"><div style="display:flex; gap:8px; align-items:center;"><span style="font-weight:500;">Do egg chairs come with a stand?</span><span class="badge info">AI-discovered</span></div><div class="mut">tested on gemini, perplexity · competitors answering: dunelm.com, wayfair.co.uk</div></div>'
+        + '<div class="qrow"><div style="display:flex; gap:8px; align-items:center;"><span style="font-weight:500;">Are hanging egg chairs suitable for outdoors?</span><span class="badge info">AI-discovered</span></div><div class="mut">tested on gemini · competitors answering: argos.co.uk</div></div>'
     },
     title: {
       title: 'improve item group title — Garden storage boxes', priority: 'medium',
